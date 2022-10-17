@@ -1,0 +1,52 @@
+import jax
+import jax.numpy as jnp
+import matplotlib.pyplot as plot
+import math
+
+
+C = [1.,1.]
+h = 0.1
+MaxT = 30
+steps = int(MaxT/h)
+u_0 = jnp.array([1,1])
+
+#def mult(v,a):
+    #return jnp.multiply(v, a)
+
+def func(X,C):
+        x,y = X
+        a,b = C
+        output = [a*y,-b*x]
+        return jnp.array(output)
+
+def f(X):
+    return func(X,C)
+
+
+def ode(a):
+    def f(X):
+        return func(X,a)
+
+    u = jnp.zeros([len(u_0),steps])
+    u = u.at[:,0].set(u_0)
+
+    for i in range(steps):
+        k1 = f(u[:,i])
+        k2 = f(u[:,i] + (0.5*h)*k1)
+        k3 = f(u[:,i] + (0.5*h)*k2)
+        k4 = f(u[:,i] + h*k3)
+        k = u[:,i]+h*(1/6)*(k1+ 2*k2+2*k3+ k4)
+
+        u = u.at[:,i+1].set(k)
+
+    return u
+
+x,y = ode(C)
+plot.plot(x,y)
+
+x,y =  jax.jacfwd(ode)(C)
+plot.plot(range(steps),x[0],label = "x wrt a")
+plot.plot(range(steps),x[1],label = "x wrt b")
+plot.plot(range(steps),y[0],label = "y wrt a")
+plot.plot(range(steps),y[1],label = "y wrt b")
+plot.legend()
