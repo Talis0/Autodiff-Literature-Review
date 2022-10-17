@@ -1,0 +1,83 @@
+using Plots,ForwardDiff
+
+function func(X,A) 
+        x = X[1]
+        return [-x^2]
+    end
+
+steps = 10
+MaxT = 5 #Maximum time 
+x_0 = [1.] #Initial Conditions
+A = [steps] #Value of constant
+h = MaxT/steps
+
+#Application of Classical Runge-Kutta method
+function RK4(f,steps,x_0,MaxT)  
+    h = MaxT/steps
+    X = []
+    push!(X,x_0)
+    i = 1
+    while i <= steps
+        k1 = f(X[i])
+        k2 = f(X[i] .+ (0.5.*h.*k1))
+        k3 = f(X[i] .+ (0.5.*h.*k2))
+        k4 = f(X[i] .+ (h*k3))
+        push!(X,X[i]+h*(k1+2 *k2+2 *k3+k4)/6)
+        i += 1
+    end
+    
+    return [x[1] for x in X]
+end
+
+#Creation of f'(a)
+function ode(A)
+    steps = A[1]
+    f(x) = func(x,A)
+    X = RK4(f,steps,x_0,MaxT)
+    return X
+end
+
+function Euler(f,steps,x_0,MaxT)  
+    h = MaxT/steps
+    X = []
+    push!(X,x_0)
+    i = 1
+    while i <= steps
+        push!(X,X[i]+h*(f(X[i])))
+        i += 1
+    end
+    
+    return [x[1] for x in X]
+end
+
+#Creation of f'(a)
+function odeE(A)
+    steps = A[1]
+    f(x) = func(x,A)
+    X = Euler(f,steps,x_0,MaxT)
+    return X
+end
+
+
+Sol = ode(A)
+SolE = odeE(A)
+
+
+Der = ForwardDiff.jacobian(ode,A)[:,1]
+DerE = ForwardDiff.jacobian(odeE,A)[:,1]
+x = [x*h for x in 1:steps+1]
+SolTrue = [exp(-t+h) for t in x]
+
+p1 = plot(x,[Sol,SolE], 
+    title = "Solution",
+    labels = ["HK4" "Euler" "True"],
+    ylabel = "f(a)",
+    xlabel = "t")
+
+p2 = plot(x,[ Der,DerE],
+    title = "Derivative",
+    labels = ["HK4" "Euler"],
+    ylabel = "f '(a)",
+    xlabel = "t")
+
+plot(p1,p2,layout = (2, 1),legend = true)
