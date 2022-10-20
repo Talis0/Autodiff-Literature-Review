@@ -3,17 +3,17 @@ import jax.numpy as jnp
 import matplotlib.pyplot as plot
 import math
 
-A = [1.,0.]
+A = [1.]
 h = 0.1
-MaxT = 5
+MaxT = 10
 steps = int(MaxT/h)
-u_0 = jnp.array([1])
+u_0 = jnp.array([1,1])
 
 
 def func(X,A):
-        x = X[0]
-        a,b = A
-        output = [-a*x+b]
+        x,y = X
+        a = A[0]
+        output = [y,-a*x]
         return jnp.array(output)
 
 def RK4(f,h,u_0,steps):
@@ -28,7 +28,7 @@ def RK4(f,h,u_0,steps):
         k = u[:,i]+h*(1/6)*(k1+ 2*k2+2*k3+ k4)
 
         u = u.at[:,i+1].set(k)
-    return u[0]
+    return u
 
 
 def ode(a):
@@ -41,13 +41,13 @@ def ode(a):
 
 
 sol = ode(A)
-der = jax.jacfwd(ode)(A)
+der = jax.jacfwd(ode)(A)[0]
 x = [x*h for x in range(steps)]
 
 plot.subplot(211)
 plot.title("Solution")
 plot.ylabel("f(a)")
-plot.plot(x,sol)
+plot.plot(sol[0],sol[1])
 
 
 
@@ -55,8 +55,7 @@ plot.subplot(212)
 plot.title("Derivative")
 plot.ylabel("f ' (a)")
 plot.xlabel("t")
-plot.plot(x,der[0])
-plot.plot(x,der[1])
+plot.plot(der[0],der[1])
 
 plot.subplots_adjust(top=1.5)
 
