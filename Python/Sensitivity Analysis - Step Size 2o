@@ -1,0 +1,87 @@
+import jax
+import jax.numpy as jnp
+import matplotlib.pyplot as plot
+import math
+
+
+C = [100.]
+MaxT = 10
+u_0 = jnp.array([1,1])
+
+def mult(v,a):
+    return jnp.multiply(v, a)
+
+def func(X,C):
+        x,y = X
+        a = C
+        output = [y,-x]
+        return jnp.array(output)
+
+def f(X):
+    return func(X,C)
+
+
+def HK4(a):
+    def f(X):
+        return func(X,a)
+
+    steps = a[0]
+   
+    h = MaxT/steps
+    
+    u = jnp.zeros([len(u_0),int(steps)])
+    u = u.at[:,0].set(u_0)
+
+    for i in range(int(steps)):
+        k1 = f(u[:,i])
+        k2 = f(u[:,i] + (0.5*h)*k1)
+        k3 = f(u[:,i] + (0.5*h)*k2)
+        k4 = f(u[:,i] + h*k3)
+        k = u[:,i]+h*(1/6)*(k1+ 2*k2+2*k3+ k4)
+
+        u = u.at[:,i+1].set(k)
+
+    return u
+
+
+def Euler(a):
+    def f(X):
+        return func(X,a)
+
+    steps = a[0]
+    
+    h = MaxT/steps
+    
+    u = jnp.zeros([len(u_0),int(steps)])
+    u = u.at[:,0].set(u_0)
+
+    for i in range(int(steps)):
+        k = u[:,i]+f(h*u[:,i])
+        u = u.at[:,i+1].set(k)
+
+    return u
+
+sol = HK4(C)
+solE = Euler(C)
+
+derE =  jax.jacfwd(HK4)(C)[0]
+der =  jax.jacfwd(Euler)(C)[0]
+
+plot.subplot(211)
+plot.title("Solution")
+plot.ylabel("f(a)")
+plot.plot(sol[0],sol[1])
+plot.plot(solE[0],solE[1])
+
+
+
+plot.subplot(212)
+plot.title("Derivative")
+plot.ylabel("f ' (a)")
+plot.xlabel("t")
+plot.plot(der[0],der[1])
+plot.plot(derE[0],derE[1])
+
+plot.subplots_adjust(top=1.5)
+
+plot.show()
