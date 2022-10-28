@@ -3,13 +3,11 @@ import jax.numpy as jnp
 import matplotlib.pyplot as plot
 import math
 
-
-C = [100.]
+steps = 100.
+C = [steps]
 MaxT = 10
-u_0 = jnp.array([1,1])
-
-def mult(v,a):
-    return jnp.multiply(v, a)
+u_0 = jnp.array([0,1])
+h = MaxT/steps
 
 def func(X,C):
         x,y = X
@@ -19,29 +17,6 @@ def func(X,C):
 
 def f(X):
     return func(X,C)
-
-
-def HK4(a):
-    def f(X):
-        return func(X,a)
-
-    steps = a[0]
-   
-    h = MaxT/steps
-    
-    u = jnp.zeros([len(u_0),int(steps)])
-    u = u.at[:,0].set(u_0)
-
-    for i in range(int(steps)):
-        k1 = f(u[:,i])
-        k2 = f(u[:,i] + (0.5*h)*k1)
-        k3 = f(u[:,i] + (0.5*h)*k2)
-        k4 = f(u[:,i] + h*k3)
-        k = u[:,i]+h*(1/6)*(k1+ 2*k2+2*k3+ k4)
-
-        u = u.at[:,i+1].set(k)
-
-    return u
 
 
 def Euler(a):
@@ -61,26 +36,25 @@ def Euler(a):
 
     return u
 
-sol = HK4(C)
-solE = Euler(C)
-
-derE =  jax.jacfwd(HK4)(C)[0]
+sol = Euler(C)
 der =  jax.jacfwd(Euler)(C)[0]
+x = [s*h for s in range(int(steps))]
+TrueSolx = [jnp.sin(t) for t in x]
+TrueSoly = [jnp.cos(t) for t in x]
 
 plot.subplot(211)
 plot.title("Solution")
-plot.ylabel("f(a)")
+plot.ylabel("y")
+plot.xlabel("x")
 plot.plot(sol[0],sol[1])
-plot.plot(solE[0],solE[1])
-
+plot.plot(TrueSolx,TrueSoly)
 
 
 plot.subplot(212)
 plot.title("Derivative")
-plot.ylabel("f ' (a)")
-plot.xlabel("t")
+plot.ylabel("y'")
+plot.xlabel("x'")
 plot.plot(der[0],der[1])
-plot.plot(derE[0],derE[1])
 
 plot.subplots_adjust(top=1.5)
 
