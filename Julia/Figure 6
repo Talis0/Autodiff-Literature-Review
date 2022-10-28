@@ -29,7 +29,6 @@ end
 
 #Creation of f'(a)
 function ode(A)
-    #a = A[1]
     f(x) = func(x,A)
     X = RK4(f,h,x_0,MaxT)
     return [x[1] for x in X]
@@ -39,20 +38,21 @@ end
 Sol1 = ode(A)
 
 Der = ForwardDiff.jacobian(ode,A)
-Der1 = Der[:,1]
+Der1 = Der[:,1] #Each vector corresponds to the derivative with respect to each variable.
 Der2 = Der[:,2]
 
 x = [x*h for x in 1:Int(MaxT/h)+1]
 
 p1 = plot(x,Sol1, 
     title = "Solution",
-    ylabel = "f(b)",
-    xlabel = "f(b)",
-    zlabel = "t")
+    ylabel = "f(t)",
+    xlabel = "t",
+    legend = false)
 
 p2 = plot(x, [Der1,Der2],
     title = "Derivative",
-    ylabel = "f '(a)",
-    xlabel = "t")
+    ylabel = "f '(t)",
+    xlabel = "t",
+    labels = ["da/dt" "db/dt"])
 
-plot(p1,p2,layout = (2, 1),legend = false)
+plot(p1,p2,layout = (2, 2),size = (800,500),legend = false)
